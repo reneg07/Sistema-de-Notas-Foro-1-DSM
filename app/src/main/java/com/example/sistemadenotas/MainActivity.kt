@@ -50,14 +50,36 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("login") }
 
+    var registeredEmail by remember { mutableStateOf("") }
+    var registeredPassword by remember { mutableStateOf("") }
+    var loggedUserName by remember { mutableStateOf("") }
+
     when (currentScreen) {
         "login" -> LoginScreen(
-            onLoginSuccess = {
+            registeredEmail = registeredEmail,
+            registeredPassword = registeredPassword,
+            onLoginSuccess = { email ->
+                loggedUserName = email.substringBefore("@")
                 currentScreen = "grades"
+            },
+            onGoToRegister = {
+                currentScreen = "register"
+            }
+        )
+
+        "register" -> RegisterScreen(
+            onRegisterSuccess = { email, password ->
+                registeredEmail = email
+                registeredPassword = password
+                currentScreen = "login"
+            },
+            onBackToLogin = {
+                currentScreen = "login"
             }
         )
 
         "grades" -> GradesInputScreen(
+            studentName = loggedUserName,
             onBack = {
                 currentScreen = "login"
             }
@@ -67,7 +89,12 @@ fun AppNavigation() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+    registeredEmail: String,
+    registeredPassword: String,
+    onLoginSuccess: (String) -> Unit,
+    onGoToRegister: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -107,9 +134,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
         Button(
             onClick = {
-                if (email == "admin.notas@gmail.com" && password == "12345") {
+                if (email == registeredEmail && password == registeredPassword) {
                     errorMessage = ""
-                    onLoginSuccess()
+                    onLoginSuccess(email)
                 } else {
                     errorMessage = "Correo o contraseña incorrectos"
                 }
@@ -120,13 +147,122 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
         }
 
         AlertMessage(message = errorMessage, isError = true)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onGoToRegister,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Crear cuenta")
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradesInputScreen(onBack: () -> Unit) {
-    var studentName by remember { mutableStateOf("") }
+fun RegisterScreen(
+    onRegisterSuccess: (String, String) -> Unit,
+    onBackToLogin: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Registro de Usuario",
+            fontSize = 28.sp
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Correo electrónico") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirmar contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                message = when {
+                    email.isBlank() || password.isBlank() || confirmPassword.isBlank() ->
+                        "Complete todos los campos"
+
+                    !email.contains("@") ->
+                        "Ingrese un correo válido"
+
+                    password.length < 5 ->
+                        "La contraseña debe tener al menos 5 caracteres"
+
+                    password != confirmPassword ->
+                        "Las contraseñas no coinciden"
+
+                    else -> {
+                        onRegisterSuccess(email, password)
+                        ""
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Registrarse")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onBackToLogin,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Volver al login")
+        }
+
+        AlertMessage(
+            message = message,
+            isError = true
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GradesInputScreen(
+    studentName: String,
+    onBack: () -> Unit
+) {
     var note1 by remember { mutableStateOf("") }
     var note2 by remember { mutableStateOf("") }
     var note3 by remember { mutableStateOf("") }
@@ -145,11 +281,9 @@ fun GradesInputScreen(onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        OutlinedTextField(
-            value = studentName,
-            onValueChange = { studentName = it },
-            label = { Text("Nombre del estudiante") },
-            modifier = Modifier.fillMaxWidth()
+        Text(
+            text = "Estudiante: $studentName",
+            fontSize = 18.sp
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -175,7 +309,7 @@ fun GradesInputScreen(onBack: () -> Unit) {
                     note2 = it
                 }
             },
-            label = { Text("Nota 1") },
+            label = { Text("Nota 2") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
@@ -189,7 +323,7 @@ fun GradesInputScreen(onBack: () -> Unit) {
                     note3 = it
                 }
             },
-            label = { Text("Nota 1") },
+            label = { Text("Nota 3") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth()
         )
@@ -202,7 +336,7 @@ fun GradesInputScreen(onBack: () -> Unit) {
                 val grade2 = note2.toFloatOrNull()
                 val grade3 = note3.toFloatOrNull()
 
-                if (studentName.isBlank() || note1.isBlank() || note2.isBlank() || note3.isBlank()) {
+                if (note1.isBlank() || note2.isBlank() || note3.isBlank()) {
                     savedMessage = "Complete todos los campos antes de guardar"
                 } else if (grade1 == null || grade2 == null || grade3 == null) {
                     savedMessage = "Las notas deben ser valores numéricos"
