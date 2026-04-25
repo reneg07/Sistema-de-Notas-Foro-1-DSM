@@ -1,0 +1,28 @@
+{
+  "project_info": {
+    "project_number": "1031705317865",
+    "project_id": "foro1-a6017",
+    "storage_bucket": "foro1-a6017.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031705317865:android:119f70edd3a58144e37b78",
+        "android_client_info": {
+          "package_name": "com.example.foro1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkrzoMHWpK5iwC7xJc3us7gZlBhyqDQaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
