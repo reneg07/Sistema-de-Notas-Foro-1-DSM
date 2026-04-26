@@ -63,7 +63,7 @@ fun AppNavigation() {
             registeredPassword = registeredPassword,
             onLoginSuccess = { email ->
                 loggedUserName = email.substringBefore("@")
-                currentScreen = "grades"
+                currentScreen = "welcome"
             },
             onGoToRegister = {
                 currentScreen = "register"
@@ -81,10 +81,20 @@ fun AppNavigation() {
             }
         )
 
+        "welcome" -> WelcomeScreen(
+            userName = loggedUserName,
+            onGoToGrades = {
+                currentScreen = "grades"
+            },
+            onLogout = {
+                currentScreen = "login"
+            }
+        )
+
         "grades" -> GradesInputScreen(
             studentName = loggedUserName,
             onBack = {
-                currentScreen = "login"
+                currentScreen = "welcome"
             },
             onCalculate = { avg ->
                 average = avg
@@ -271,6 +281,50 @@ fun RegisterScreen(
     }
 }
 
+ @Composable
+ fun WelcomeScreen(
+     userName: String,
+     onGoToGrades: () -> Unit,
+     onLogout: () -> Unit
+ ) {
+     Column(
+         modifier = Modifier
+             .fillMaxSize()
+             .padding(24.dp),
+         verticalArrangement = Arrangement.Center
+     ) {
+         Text(
+             text = "Bienvenido, $userName",
+             fontSize = 30.sp
+         )
+
+         Spacer(modifier = Modifier.height(12.dp))
+
+         Text(
+             text = "Desde este panel puede acceder al registro de notas del estudiante.",
+             fontSize = 16.sp
+         )
+
+         Spacer(modifier = Modifier.height(24.dp))
+
+         Button(
+             onClick = onGoToGrades,
+             modifier = Modifier.fillMaxWidth()
+         ) {
+             Text("Ir al registro de notas")
+         }
+
+         Spacer(modifier = Modifier.height(12.dp))
+
+         Button(
+             onClick = onLogout,
+             modifier = Modifier.fillMaxWidth()
+         ) {
+             Text("Cerrar sesión")
+         }
+     }
+ }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GradesInputScreen(
@@ -377,7 +431,7 @@ fun GradesInputScreen(
             onClick = onBack,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Cerrar sesión")
+            Text("Regresar")
         }
     }
 }
@@ -420,7 +474,10 @@ fun ResultScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text("Promedio: $average", fontSize = 20.sp)
+        Text(
+            text = "Promedio: %.2f".format(average),
+            fontSize = 20.sp
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
