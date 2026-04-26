@@ -1,4 +1,4 @@
-package com.example.sistemadenotas
+ package com.example.sistemadenotas
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -50,9 +50,12 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("login") }
 
+
     var registeredEmail by remember { mutableStateOf("") }
     var registeredPassword by remember { mutableStateOf("") }
     var loggedUserName by remember { mutableStateOf("") }
+    
+    var average by remember { mutableStateOf(0f) }
 
     when (currentScreen) {
         "login" -> LoginScreen(
@@ -82,6 +85,17 @@ fun AppNavigation() {
             studentName = loggedUserName,
             onBack = {
                 currentScreen = "login"
+            },
+            onCalculate = { avg ->
+                average = avg
+                currentScreen = "result"
+            }
+        )
+
+        "result" -> ResultScreen(
+            average = average,
+            onBack = {
+                currentScreen = "grades"
             }
         )
     }
@@ -261,7 +275,8 @@ fun RegisterScreen(
 @Composable
 fun GradesInputScreen(
     studentName: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onCalculate: (Float) -> Unit
 ) {
     var note1 by remember { mutableStateOf("") }
     var note2 by remember { mutableStateOf("") }
@@ -343,7 +358,8 @@ fun GradesInputScreen(
                 } else if (grade1 !in 0f..10f || grade2 !in 0f..10f || grade3 !in 0f..10f) {
                     savedMessage = "Las notas deben estar entre 0 y 10"
                 } else {
-                    savedMessage = "Notas guardadas correctamente para $studentName: $grade1, $grade2, $grade3"
+                    val average = (grade1 + grade2 + grade3) / 3
+                    onCalculate(average)
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -385,5 +401,39 @@ fun AlertMessage(
                 )
                 .padding(12.dp)
         )
+    }
+}
+
+@Composable
+fun ResultScreen(
+    average: Float,
+    onBack: () -> Unit
+) {
+    val resultText = if (average >= 6f) "Aprobó" else "Reprobó"
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Resultado", fontSize = 28.sp)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("Promedio: $average", fontSize = 20.sp)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = resultText,
+            fontSize = 22.sp,
+            color = if (average >= 6f) Color(0xFF1B5E20) else Color(0xFFB00020)
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Volver")
+        }
     }
 }
