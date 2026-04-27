@@ -138,4 +138,3 @@ https://youtu.be/n8LKoX3xkmE
 * Platzi
 * AppMaster Blog
 
-Basado en el documento académico del Foro 1 DSM941 
